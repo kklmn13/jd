@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests"> -->
+    <title>小车车滴滴滴开</title>
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.0.1/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="icon" href="https://cdn.jsdelivr.net/npm/@bootcss/v3.bootcss.com@1.0.12/favicon.ico">
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery.qrcode/1.0/jquery.qrcode.min.js"></script>
+    <style>
+        body {
+            padding-top: 20px;
+            padding-bottom: 20px;
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            font-size: 14px;
+            line-height: 1.42857143;
+            color: #333;
+            background-color: #fff;
+        }
+
+        p {
+            display: block;
+            margin-block-start: 1em;
+            margin-block-end: 1em;
+            margin-inline-start: 0px;
+            margin-inline-end: 0px;
+        }
+
+        /* Everything but the jumbotron gets side spacing for mobile first views */
+        .header,
+        .marketing,
+        .footer {
+            padding-right: 15px;
+            padding-left: 15px;
+        }
+
+        /* Custom page header */
+        .header {
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e5e5e5;
+        }
+
+        .header h3 {
+            margin-top: 0;
+            margin-bottom: 0;
+            line-height: 40px;
+            /* Make the masthead heading the same height as the navigation */
+        }
+
+        /* Custom page footer */
+        .footer {
+            padding-top: 19px;
+            color: #777;
+            border-top: 1px solid #e5e5e5;
+        }
+
+        /* Customize container */
+        @media (min-width: 768px) {
+            .container {
+                max-width: 730px;
+            }
+        }
+
+        .container-narrow>hr {
+            margin: 30px 0;
+        }
+
+        /* Main marketing message and sign up button */
+        .jumbotron {
+            text-align: center;
+            padding: 1px;
+            border-bottom: 1px solid #e5e5e5;
+        }
+
+        .jumbotron .btn {
+            padding: 14px 24px;
+            font-size: 21px;
+        }
+
+        /* Supporting marketing content */
+        .marketing {
+            margin: 40px 0;
+        }
+
+        .marketing p+h4 {
+            margin-top: 28px;
+        }
+
+
+
+        /* Responsive: Portrait tablets and up */
+        @media screen and (min-width: 768px) {
+
+            /* Remove the padding we set earlier */
+            .header,
+            .marketing,
+            .footer {
+                padding-right: 0;
+                padding-left: 0;
+            }
+
+            .header {
+                margin-bottom: 30px;
+            }
+
+            .jumbotron {
+                border-bottom: 5px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="jumbotron">
+        <p id="qrcode" style="padding: 3px;"></p>
+        <p>
+        <div id="tips" style="font-style:initial; color: DarkOrange; font-weight: 500; ">↑↑↑ 截图使用相册扫描上方二维码
+            ↑↑↑</br>或</br>↓↓↓ 点击下方绿色按钮 ↓↓↓
+        </div>
+        </p>
+        <p>
+            <a class="btn btn-lg btn-success" href="#" role="button" id="jumpUrl" href='' style="display: none"></a>
+        </p>
+        <button id="genQRCode" class="btn btn-lg btn-primary btn-block" onclick="genLoginButtonAndQrCode()"
+            type="submit">获取二维码</button>
+
+        <p id="checkBackDataMsg" style="display: none">
+
+        </p>
+
+        <p>
+            <label id="lblWebapi" style="display: none">请输入扫码的API接口地址：</label>
+            <input id="txtWebapi" type="text" value="" style="display: none" />
+        </p>
+    </div>
+
+    <script type="text/javascript">
+
+        function GetQueryString(name) {
+            let reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+            let r = window.location.search.substr(1).match(reg);
+            if (r != null) {
+                return unescape(r[2]);
+            }
+            return "";
+        };
+        /*判断客户端*/
+        function judgeClient() {
+            let u = navigator.userAgent;
+            let isAndroid = u.indexOf('Android') > -1 || u.indexOf('Adr') > -1;   //判断是否是 android终端
+            let isIOS = !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/);     //判断是否是 iOS终端
+            if (isAndroid) {
+                return 'Android';
+            } else if (isIOS) {
+                return 'IOS';
+            } else {
+                return 'PC';
+            }
+        };
+
+        const webApiHost = GetQueryString("webapi");
+
+
+        function getLoginInfoCallBack(data) {
+            $('#qrcode').empty();
+            token = data.loginInfo.token;
+            oklToken = data.loginInfo.oklToken;
+            cookie = data.loginInfo.cookie;
+
+            let loginUrl = data.loginInfo.url;
+            let jumpHref = data.loginInfo.jumpHref;
+            $('#qrcode').qrcode({
+                width: 200,
+                height: 200,
+                render: "canvas",
+                correctLevel: 0,
+                text: loginUrl
+            });
+            let deviceType = judgeClient();
+
+            if (deviceType === "PC") {
+                $('#jumpUrl').show();
+                $('#jumpUrl').html(`点击跳转京东app登录`)
+                $("#jumpUrl").attr("href", jumpHref);
+            } else if (deviceType === "IOS") {
+                $('#jumpUrl').show();
+                $('#jumpUrl').html(`点击跳转京东app登录`)
+                $("#jumpUrl").attr("href", jumpHref);
+            } else if (deviceType === "Android") {
+                $('#jumpUrl').show();
+                $('#jumpUrl').html(`点击跳转京东app登录`)
+                $("#jumpUrl").attr("href", jumpHref);
+            }
+            $("#genQRCode").attr({ "disabled": "disabled" });
+        };
+
+        function genLoginButtonAndQrCode() {
+            apiHost = $("#txtWebapi").val() || webApiHost;
+            if (apiHost == "" || apiHost == null) {
+                $('#lblWebapi').show();
+                $('#txtWebapi').show();
+                alert("未配置配置WebApi地址，请配置后在生成。");
+                return;
+            };
+
+            let getOpt = {
+                "url": `${apiHost}/login`,
+                "crossDomain": true,
+                "dataType": "json", //指定服务器返回的数据类型
+                "method": "GET",
+                "headers": {
+                    "cache-control": "no-cache"
+                }
+            };
+            console.log(getOpt);
+            $.ajax(getOpt).done(function (response) {
+                getLoginInfoCallBack(response)
+                $('#checkBackDataMsg').show();
+                $('#checkBackDataMsg').html(`<div style="font-style:initial; color: SpringGreen; font-weight: 500;">Checking login status...</div>`)
+                iii = 1;
+                checkInterval = setInterval(checkAndWrite, 5 * 1000);
+            });
+        };
+
+        function checkLoginInfoCallBack(data) {
+            console.log(iii);
+            if (iii >= 35 || data.cookieInfo.cookie != "") {
+                clearInterval(checkInterval);
+                $('#qrcode').empty();
+                $('#jumpUrl').hide();
+                $('#lblWebapi').hide();
+                $('#txtWebapi').hide();
+                if (iii >= 35) {
+                    $('#checkBackDataMsg').show();
+                    $('#jumpUrl').html(`登陆已经超时，请重新获取二维码`)
+                    $('#jumpUrl').attr({ "disabled": "disabled" });
+                    $("#genQRCode").attr({ "disabled": "disabled" });
+                    $("#genQRCode").removeAttr("disabled");
+                    $("#genQRCode").text("重新获取二维码")
+                    $('#checkBackDataMsg').html(`<div style="font-style:initial; color: SaddleBrown; font-weight: 500;">二维码已经过期，请重新获取！</div>`)
+                } else {
+                    $('#checkBackDataMsg').show();
+                    if (data.code = 20000) {
+                        $('#checkBackDataMsg').html(`<div id="tips" style="font-style:initial; color: forestgreen; font-weight: 800; ">${data.cookieInfo.cookie} ${data.errMsg}</div>`)
+                    } else {
+                        $('#checkBackDataMsg').html(`<div id="tips" style="font-style:initial; color: forestgreen; font-weight: 800; ">${data.cookieInfo.cookie}</div> </br><div id="tips" style="font-style:initial; color: IndianRed; font-weight: 800; ">${data.errMsg}</div>`)
+                    }
+                }
+
+            }
+        };
+
+        function checkAndWrite() {
+            var postOpt = {
+                "async": true,
+                "crossDomain": true,
+                "url": `${apiHost}/check`,
+                "dataType": "json",
+                "method": "POST",
+                "headers": {
+                    "content-type": "application/x-www-form-urlencoded",
+                    "cache-control": "no-cache",
+                },
+                "data": {
+                    "token": `${token}`,
+                    "oklToken": `${oklToken}`,
+                    "cookie": `${cookie}`
+                }
+            };
+            $.ajax(postOpt).done(function (response) {
+                checkLoginInfoCallBack(response)
+                console.log(response);
+                iii += 1;
+            });
+        };
+
+    </script>
+</body>
+
+</html>
